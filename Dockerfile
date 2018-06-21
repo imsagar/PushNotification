@@ -13,6 +13,7 @@ RUN apk --update add \
   php7-zmq \
   php7-posix \
   php7-pcntl \
+  php7-session \
   curl 
 
 COPY composer.json composer.json
