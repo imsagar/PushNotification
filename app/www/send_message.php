@@ -1,6 +1,6 @@
 <?php
 //$pods_ip = shell_exec('kubectl describe service push-notification-service | grep ":2121" | awk -F " " \'{print $2}\'');
-$pods_ip = ['10.32.0.10','10.32.0.13','10.32.0.14'];
+$pods_ip = ['10.32.0.10','10.32.0.16','10.32.0.17'];
 
 // Specify who to push, empty to push to all online users
 $to_uid = "";
@@ -9,7 +9,7 @@ foreach($pods_ip as $ip) {
 	$push_api_url = "http://".$ip.":2121/";
 	$post_data = array(
 	   "type" => "publish",
-	   "content" => "This is the push test data",
+	   "content" => "This is the push test data. IP: ".$ip." Time: ".time(),
 	   "to" => $to_uid, 
 	);
 	$ch = curl_init ();

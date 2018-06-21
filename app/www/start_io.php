@@ -1,4 +1,9 @@
 <?php
+
+Header("Content-Type: text/html; charset=UTF-8"); 
+header("Access-Control-Allow-Origin:*"); 
+header("Access-Control-Allow-Methods:OPTION, POST, GET "); 
+header("Access-Control-Allow-Headers:X-Requested-With, Content-Type");
 use Workerman\Worker;
 use Workerman\WebServer;
 use Workerman\Lib\Timer;
@@ -8,10 +13,13 @@ include '/app/extensions/PushNotification/vendor/autoload.php';
 
 // Global array save uid online data
 $uidConnectionMap = array();
+$aidConnectionMap = array();
 // Record the number of online users who last broadcast
 $last_online_count = 0;
+$alast_online_count = 0;
 // Record the number of online pages broadcast last time
 $last_online_page_count = 0;
+$alast_online_page_count = 0;
 
 // PHPSocketIOservice
 $sender_io = new SocketIO(2120);
@@ -32,25 +40,49 @@ $sender_io->on('connection', function($socket){
         }
         // This uid has ++$uidConnectionMap[$uid] socket connections
         ++$uidConnectionMap[$uid];
-        echo count($uidConnectionMap);
         //Add this connection to the uid group to facilitate pushing data for uid
         $socket->join($uid);
         $socket->uid = $uid;
         // Update the online data of this socket corresponding page
         $socket->emit('update_online_count', "<b>{$last_online_count}</b><b>{$last_online_page_count}</b>");
     });
+
+    $socket->on('account_login', function ($aid)use($socket){
+        global $aidConnectionMap, $alast_online_count, $alast_online_page_count;
+        // Already logged in
+        if(isset($socket->aid)){
+            return;
+        }
+        // Update online data corresponding to uid
+        $aid = (string)$aid;
+        if(!isset($uidConnectionMap[$aid]))
+        {
+            $uidConnectionMap[$aid] = 0;
+        }
+        // This uid has ++$uidConnectionMap[$uid] socket connections
+        ++$uidConnectionMap[$aid];
+        //Add this connection to the uid group to facilitate pushing data for uid
+        $socket->join($aid);
+        $socket->aid = $aid;
+    });
     
     // When the client disconnects, it is triggered (usually due to a web page shutdown or a jump refresh)
     $socket->on('disconnect', function () use($socket) {
-        if(!isset($socket->uid))
+        if(!isset($socket->uid) || !isset($socket->aid))
         {
-             return;
+            return;
         }
         global $uidConnectionMap, $sender_io;
-        // 将uid的在线socket数减一
+        global $aidConnectionMap;
+        // Decrease the number of uid online sockets by one
         if(--$uidConnectionMap[$socket->uid] <= 0)
         {
             unset($uidConnectionMap[$socket->uid]);
+        }
+
+        if(--$aidConnectionMap[$socket->aid] <= 0)
+        {
+            unset($aidConnectionMap[$socket->aid]);
         }
     });
 });
@@ -68,7 +100,20 @@ $sender_io->on('workerStart', function(){
             case 'publish':
                 global $sender_io;
                 $to = @$_POST['to'];
+                $acc = @$_POST['acc'];
+
                 $_POST['content'] = htmlspecialchars(@$_POST['content']);
+
+                if($acc) {
+                    $sender_io->to($acc)->emit('new_msg', 'To Account: '.$_POST['content']);
+                    if($to && !isset($aidConnectionMap[$acc])){
+                        return $http_connection->send('offline');
+                    }else{
+                        return $http_connection->send('ok');
+                    }
+
+                    break;
+                }
                 // If uid is specified, data is sent to the socket group where uid is located.
                 if($to){
                     $sender_io->to($to)->emit('new_msg', $_POST['content']);
@@ -82,6 +127,8 @@ $sender_io->on('workerStart', function(){
                 }else{
                     return $http_connection->send('ok');
                 }
+
+                break;
         }
         return $http_connection->send('fail');
     };
