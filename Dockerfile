@@ -5,7 +5,7 @@ RUN set -x ; \
   adduser -u 82 -D -S -G www-data www-data && exit 0 ; exit 1
   
 RUN apk --update add \
-  openssl \
+  php7-openssl \
   php7 \
   php7-json \
   php7-phar \
