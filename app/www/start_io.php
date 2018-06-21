@@ -32,6 +32,7 @@ $sender_io->on('connection', function($socket){
         }
         // This uid has ++$uidConnectionMap[$uid] socket connections
         ++$uidConnectionMap[$uid];
+        echo count($uidConnectionMap);
         //Add this connection to the uid group to facilitate pushing data for uid
         $socket->join($uid);
         $socket->uid = $uid;
