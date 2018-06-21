@@ -4,7 +4,7 @@ use Workerman\WebServer;
 use Workerman\Lib\Timer;
 use PHPSocketIO\SocketIO;
 
-include '/app/extensions/PushNotification/vendor';
+include '/app/extensions/PushNotification/vendor/autoload.php';
 
 // Global array save uid online data
 $uidConnectionMap = array();
