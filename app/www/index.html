@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<script src='//cdn.bootcss.com/socket.io/2.0.3/socket.io.js'></script>
+<script src='//cdn.bootcss.com/jquery/1.11.3/jquery.js'></script>
+<script src='notify.js'></script>
+</head>
+<body>
+
+<div class="notification sticky hide">
+    <p id="content"> </p>
+    <a class="close" href="javascript:"> X </a>
+</div>
+<div class="wrapper">
+    <div style="width:850px;">
+    Current user uid: <b class="uid"></b><br>
+    You can use url: <a id="send_to_one" href="http://www.workerman.net:2121/?type=publish&to=1445590039000&content=%E6%B6%88%E6%81%AF%E5%86%85%E5%AE%B9" target="_blank"><font style="color:#91BD09">http://<font class="domain"></font>:2121?type=publish&to=<b class="uid"></b>&content=Hello man</font></a>  Send message to current user<br>
+    You can use url: <a href="http://www.workerman.net:2121/?type=publish&to=&content=%E6%B6%88%E6%81%AF%E5%86%85%E5%AE%B9" target="_blank"  id="send_to_all" ><font style="color:#91BD09">http://<font class="domain"></font>:2121?type=publish&to=&content=Whatsup man</font></a> Push messages to all online users<br>
+    <script>
+        // Replaced with the real uid when used, this convenient demonstration uses a timestamp
+        var uid = Date.parse(new Date());
+        $('#send_to_one').attr('href', 'http://'+document.domain+':2121/?type=publish&content=Hello&to='+uid);
+        $('.uid').html(uid);
+		$('#send_to_all').attr('href', 'http://'+document.domain+':2121/?type=publish&content=Hello Everyone');
+        $('.uid').html(uid);
+        $('.domain').html(document.domain);
+    </script>
+</div>
+
+<script>
+$(document).ready(function () {
+    var socket = io('http://'+document.domain+':2120');
+    socket.on('connect', function(){
+    	socket.emit('login', uid);
+    });
+    socket.on('new_msg', function(msg){
+         $('#content').html('Text: '+msg);
+         $('.notification.sticky').notify();
+    });
+    socket.on('update_online_count', function(online_stat){
+        $('#online_box').html(online_stat);
+    });
+});
+</script>
+<div id="footer">
+<center id="online_box"></center>
+</div>
+</body>
+</html>

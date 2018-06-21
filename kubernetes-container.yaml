@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: PushNotification-Service
+spec:
+  ports:
+    - name: socket
+      port: 2120
+      targetPort: 2120
+      nodePort: 42120
+    - name: web
+      port: 8082
+      targetPort: 2121
+      nodePort: 42121
+  type: NodePort
+  selector:
+    module: push_server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpnginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      module: push_server
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        module: push_server
+    spec:
+      containers:
+      - image: local_push_server
+        imagePullPolicy: IfNotPresent
+        name: push_notification
+        ports:
+        - name: socket
+          containerPort: 2120
+        - name: web
+          containerPort: 2121
