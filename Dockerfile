@@ -10,6 +10,7 @@ RUN apk --update add \
   php7-json \
   php7-phar \
   php7-mbstring \
+  php7-zmq \
   curl 
 
 COPY composer.json composer.json
