@@ -1,8 +1,4 @@
 FROM alpine:latest
-
-RUN set -x ; \
-  addgroup -g 82 -S www-data ; \
-  adduser -u 82 -D -S -G www-data www-data && exit 0 ; exit 1
   
 RUN apk --update add \
   php7-openssl \
@@ -26,8 +22,8 @@ RUN composer install --prefer-dist --no-scripts --no-dev --no-autoloader && rm -
 RUN composer dump-autoload --optimize
 
 COPY . ./
-RUN chown -R www-data:www-data /app/www
+RUN chown -R www-data:www-data /app/src
 
-WORKDIR /app/www
+WORKDIR /app/src
 
 CMD ["php", "start_io.php", "start"]
