@@ -33,17 +33,17 @@ class PushNotification {
            		break;
         }
 
-        $this->http_connection->send('fail');
+        $this->http_connection->send(Utils::str_out(['status' => 'fail', 'err' => '`type` not defined']);
         return false;
 	}
 
 	public function send_message_to_user($user_id, $message) {
 		$this->sender_io->to($user_id)->emit('data', $message);
 		if(!isset(PushNotification::$user_connection_map[$user_id])){
-			$this->http_connection->send('The user is Offline.');
+			$this->http_connection->send(Utils::str_out(['status' => 'fail', 'err' => 'User offline']);
 			return false;
         }else{
-        	$this->http_connection->send('Message sent to '.$user_id);
+        	$this->http_connection->send(Utils::str_out(['status' => 'fail', 'msg' => 'Message sent', 'user' => $user_id]);
         	return true;
         }
 	}
@@ -51,17 +51,17 @@ class PushNotification {
 	public function send_message_to_account($account_id, $message) {
 		$this->sender_io->to($account_id)->emit('data', $message);
 		if(!isset(PushNotification::$account_connection_map[$account_id])){
-			$this->http_connection->send('The users in Account: '.$account_id.' is Offline');
+			$this->http_connection->send(['status' => 'fail', 'err' => 'Account users offline', 'account' => $account_id]);
 			return false;
         }else{
-        	$this->http_connection->send('Message sent to all user in Account: '.$account_id);
+        	$this->http_connection->send(['status' => 'success', 'msg' => 'Message sent', 'account' => $account_id]);
         	return true;
         }
 	}
 
 	public function send_message_to_all($message) {
 		$this->sender_io->emit('data', $message);
-		$this->http_connection->send('Message sent to all users.');
+		$this->http_connection->send(['status' => 'success', 'msg' => 'Message sent', 'global' => true);
 	}
 
 	public static function update_user_connection($user_id) {
